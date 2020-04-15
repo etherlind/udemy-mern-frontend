@@ -1,7 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 
-import MainHeader from './MainHeader';
 import './NavLinks.css';
 
 const NavLinks = props => {
@@ -19,7 +18,7 @@ const NavLinks = props => {
         <NavLink to="/places/new">ADD PLACE</NavLink>
       </li>
       <li>
-        <NavLink to="/auth">AUTENTICATE</NavLink>
+        <NavLink to="/auth">AUTHENTICATE</NavLink>
       </li>
     </ul>
   );
