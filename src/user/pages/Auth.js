@@ -1,15 +1,13 @@
 import React, { useState, useContext } from 'react';
 
 import Card from '../../shared/components/UIElements/Card';
-
-import ErrorModal from '../../shared/components/UIElements/ErrorModal';
-import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner';
 import Input from '../../shared/components/FormElements/Input';
 import Button from '../../shared/components/FormElements/Button';
-
+import ErrorModal from '../../shared/components/UIElements/ErrorModal';
+import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner';
 import { VALIDATOR_EMAIL, VALIDATOR_MINLENGTH, VALIDATOR_REQUIRE } from '../../shared/util/validators';
-import { useHttpClient } from '../../shared/hooks/http-hook';
 import { useForm } from '../../shared/hooks/form-hook';
+import { useHttpClient } from '../../shared/hooks/http-hook';
 import { AuthContext } from '../../shared/context/auth-context';
 import './Auth.css';
 
@@ -61,39 +59,35 @@ const Auth = () => {
 
     if (isLoginMode) {
       try {
-        // the fetch can return 4xx or 5xx without it being considered an error
-        const responseData = await sendRequest(
+        await sendRequest(
           'http://localhost:5000/api/users/login',
           'POST',
           JSON.stringify({
             email: formState.inputs.email.value,
             password: formState.inputs.password.value
           }),
-          { 'Content-Type': 'application/json' }
+          {
+            'Content-Type': 'application/json'
+          }
         );
         auth.login();
-      } catch (error) {
-        // it's already handled in the useHttpClient hook
-      }
+      } catch (err) {}
     } else {
       try {
-        // the fetch can return 4xx or 5xx without it being considered an error
-        const responseData = await sendRequest(
+        await sendRequest(
           'http://localhost:5000/api/users/signup',
           'POST',
-          JSON.stringify(
-            {
-              name: formState.inputs.name.value,
-              email: formState.inputs.email.value,
-              password: formState.inputs.password.value
-            },
-            { 'Content-Type': 'application/json' }
-          )
+          JSON.stringify({
+            name: formState.inputs.name.value,
+            email: formState.inputs.email.value,
+            password: formState.inputs.password.value
+          }),
+          {
+            'Content-Type': 'application/json'
+          }
         );
         auth.login();
-      } catch (error) {
-        // it's already handled in the useHttpClient hook
-      }
+      } catch (err) {}
     }
   };
 
@@ -102,7 +96,8 @@ const Auth = () => {
       <ErrorModal error={error} onClear={clearError} />
       <Card className="authentication">
         {isLoading && <LoadingSpinner asOverlay />}
-        <h2> Login Required </h2> <hr />
+        <h2>Login Required</h2>
+        <hr />
         <form onSubmit={authSubmitHandler}>
           {!isLoginMode && (
             <Input
