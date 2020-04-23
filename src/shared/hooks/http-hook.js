@@ -1,47 +1,45 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 
-// useEffect not only runs when some component re-renders, but also when a component unmounts
 export const useHttpClient = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState();
 
-  // there can be a situation where we try to update state on a component that is not on the screen anymore
-  // in such case, we'd want to cancel the ongoing HTTP request
-
-  // a reference here is a piece of data which won't be changed when this function runs again
-  // useRef stores data across the re-render cycles
-  // we do not manage it via state (a state also would survive re-render cycles) because we don't want to update the UI when
-  // we change this data
   const activeHttpRequests = useRef([]);
-  // to avoid infinite loops, it is wrapped in useCallback
-  // so this function never gets recreated when the component that uses this hook re-renders
-  const sendRequest = useCallback(async (url, method = 'GET', body = null, headers = {}) => {
-    setIsLoading(true);
 
-    // AbortController is an API supported in modern browsers
-    const httpAbortCtrl = new AbortController();
-    activeHttpRequests.current.push(httpAbortCtrl);
+  const sendRequest = useCallback(
+    async (url, method = 'GET', body = null, headers = {}) => {
+      setIsLoading(true);
+      const httpAbortCtrl = new AbortController();
+      activeHttpRequests.current.push(httpAbortCtrl);
 
-    try {
-      const response = await fetch(url, { method, body, headers, signal: httpAbortCtrl.signal });
+      try {
+        const response = await fetch(url, {
+          method,
+          body,
+          headers,
+          signal: httpAbortCtrl.signal
+        });
 
-      const responseData = await response.json();
+        const responseData = await response.json();
 
-      // remove the request controller used for this request
-      // in this way we don't have any old request controllers
-      activeHttpRequests.current = activeHttpRequests.current.filter(reqCtrl => reqCtrl !== httpAbortCtrl);
+        activeHttpRequests.current = activeHttpRequests.current.filter(
+          reqCtrl => reqCtrl !== httpAbortCtrl
+        );
 
-      if (!response.ok) {
-        throw new Error(responseData.message);
+        if (!response.ok) {
+          throw new Error(responseData.message);
+        }
+
+        setIsLoading(false);
+        return responseData;
+      } catch (err) {
+        setError(err.message);
+        setIsLoading(false);
+        throw err;
       }
-      setIsLoading(false);
-      return responseData;
-    } catch (error) {
-      setError(error.message);
-      setIsLoading(false);
-      throw error;
-    }
-  }, []);
+    },
+    []
+  );
 
   const clearError = () => {
     setError(null);
@@ -55,5 +53,6 @@ export const useHttpClient = () => {
       activeHttpRequests.current.forEach(abortCtrl => abortCtrl.abort());
     };
   }, []);
+
   return { isLoading, error, sendRequest, clearError };
 };
